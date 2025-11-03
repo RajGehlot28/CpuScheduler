@@ -2,26 +2,24 @@
 #include <vector>
 #include <algorithm>
 #include <queue>
-#include <tuple> // Added for tuple
-
 using namespace std;
 
 // functions for sorting
-static bool sortByArrival(const vector<int>& a, const vector<int>& b) {
+bool sortByArrival(const vector<int>& a, const vector<int>& b) {
     // tie-breaker :- process id
-    if (a[1] == b[1]) return a[0] < b[0];
+    if(a[1] == b[1]) return a[0] < b[0];
     return a[1] < b[1];
 }
 
-static bool sortByBurstTime(const vector<int>& a, const vector<int>& b) {
+bool sortByBurstTime(const vector<int>& a, const vector<int>& b) {
     // tie-breaker :- FCFS
-    if (a[2] == b[2]) return sortByArrival(a, b);
+    if(a[2] == b[2]) return sortByArrival(a, b);
     else return a[2] < b[2];
 }
 
-static bool sortByPriority(const vector<int>& a, const vector<int>& b) {
+bool sortByPriority(const vector<int>& a, const vector<int>& b) {
     // tie-breaker :- FCFS (higher number = higher priority)
-    if (a[3] == b[3]) return sortByArrival(a, b);
+    if(a[3] == b[3]) return sortByArrival(a, b);
     else return a[3] > b[3];
 }
 
@@ -33,30 +31,27 @@ void priorityScheduling() {
 
     cout << "Enter number of processes:";
     cin >> n;
-
-    // check for 0 processes
-    if (n <= 0) return;
+    if(n <= 0) return;
 
     cout << "Enter arrival time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         arrTime.push_back(time);
     }
     cout << "Enter burst time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         burstTime.push_back(time);
     }
     cout << "Enter priority of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int pr;
         cin >> pr;
         priority.push_back(pr);
     }
 
-    // --- LOGIC REPLACED ---
     vector<pair<int, int>> gantt_chart; // {PID, StartTime}
     vector<int> ct(n);
     vector<int> tat(n);
@@ -69,7 +64,7 @@ void priorityScheduling() {
 
     while(completed_count < n) {
         int best_job_idx = -1;
-        int max_priority = -1; // Higher number = higher priority
+        int max_priority = -1;
         int min_arrival = 1e9;
 
         for(int i = 0; i < n; i++) {
@@ -78,8 +73,9 @@ void priorityScheduling() {
                     max_priority = priority[i];
                     best_job_idx = i;
                     min_arrival = arrTime[i];
-                } else if (priority[i] == max_priority) {
-                    if (arrTime[i] < min_arrival) {
+                }
+                else if(priority[i] == max_priority) { // same priority -> tie breaker
+                    if(arrTime[i] < min_arrival) {
                         best_job_idx = i;
                         min_arrival = arrTime[i];
                     }
@@ -88,28 +84,23 @@ void priorityScheduling() {
         }
 
         if(best_job_idx == -1) {
-            // No job is ready, CPU is IDLE
+            // no job is ready, CPU is empty
             int next_arrival = 1e9;
             for(int i = 0; i < n; i++) {
                 if(is_completed[i] == 0) {
                     next_arrival = min(next_arrival, arrTime[i]);
                 }
             }
-            if(next_arrival > time) {
-                if (gantt_chart.empty() || gantt_chart.back().first != -1) {
-                   gantt_chart.push_back({-1, time});
-                }
-                time = next_arrival;
-            } else {
-                 time++; // Should not happen if next_arrival logic is correct, but safe fallback
-            }
-        } else {
-            // A job is selected
+            gantt_chart.push_back({-1, time});
+            time = next_arrival;
+        }
+        else {
+            // A process is selected
             int process = best_job_idx;
             int at = arrTime[process];
             int bt = burstTime[process];
 
-            gantt_chart.push_back({ process, time });
+            gantt_chart.push_back({process, time});
 
             resTime[process] = time - at;
             time += bt;
@@ -122,42 +113,40 @@ void priorityScheduling() {
             completed_count++;
         }
     }
-    // --- END OF REPLACED LOGIC ---
-
-    gantt_chart.push_back({-99, time}); // Sentinel for end time
+    // for end time
+    gantt_chart.push_back({-99, time});
 
     // printing gantt chart
     cout << "\nGantt Chart :-" << endl;
-    int gantt_size = (int)gantt_chart.size() - 1;
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    int gantt_size = gantt_chart.size();
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
+    for(int i = 0; i < gantt_size-1; i++) {
         int pid = gantt_chart[i].first;
-        if (pid == -1) {
+        if(pid == -1) {
             cout << "| IDLE  ";
         }
         else {
-            cout << "|  P" << pid << "   ";
+            cout << "|  P" << pid+1 << "   ";
         }
     }
     cout << "|" << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
     
     if(!gantt_chart.empty()){
         cout << gantt_chart[0].second;
     }
-
-    for (int i = 0; i < gantt_size; i++) {
+    for(int i = 0; i < gantt_size-1; i++) {
         int completion = gantt_chart[i+1].second;
         // here we are giving less space for a double digit number to make a balance
-        if (completion > 9) {
+        if(completion > 9) {
             cout << "      " << completion;
         }
         else {
@@ -169,7 +158,7 @@ void priorityScheduling() {
     // printing values in table form
     cout << "Priority (Non-Preemptive) Results:" << endl;
     cout << "Process\t\tArrival\t\tBurst\t\tPriority\tCompletion\tTurnaround\tWaiting" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         cout << "P" << i << "\t\t";
         cout << arrTime[i] << "\t\t";
         cout << burstTime[i] << "\t\t";
@@ -193,24 +182,21 @@ void shortestJobFirst() {
 
     cout << "Enter number of processes:";
     cin >> n;
-
-    // check for 0 processes
-    if (n <= 0) return;
+    if(n <= 0) return;
 
     cout << "Enter arrival time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         arrTime.push_back(time);
     }
     cout << "Enter burst time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         burstTime.push_back(time);
     }
 
-    // --- LOGIC REPLACED ---
     vector<pair<int, int>> gantt_chart; // {PID, StartTime}
     vector<int> ct(n);
     vector<int> tat(n);
@@ -222,6 +208,7 @@ void shortestJobFirst() {
     int completed_count = 0;
 
     while(completed_count < n) {
+        // finding a job with minimum burst time and valid arrival time
         int best_job_idx = -1;
         int min_burst = 1e9;
         int min_arrival = 1e9;
@@ -232,8 +219,9 @@ void shortestJobFirst() {
                     min_burst = burstTime[i];
                     best_job_idx = i;
                     min_arrival = arrTime[i];
-                } else if (burstTime[i] == min_burst) {
-                    if (arrTime[i] < min_arrival) {
+                }
+                else if(burstTime[i] == min_burst) { // tie-breaker -> FCFS
+                    if(arrTime[i] < min_arrival) {
                         best_job_idx = i;
                         min_arrival = arrTime[i];
                     }
@@ -242,28 +230,23 @@ void shortestJobFirst() {
         }
 
         if(best_job_idx == -1) {
-            // No job is ready, CPU is IDLE
+            // no job is ready, CPU is empty
             int next_arrival = 1e9;
             for(int i = 0; i < n; i++) {
                 if(is_completed[i] == 0) {
                     next_arrival = min(next_arrival, arrTime[i]);
                 }
             }
-            if(next_arrival > time) {
-                 if (gantt_chart.empty() || gantt_chart.back().first != -1) {
-                   gantt_chart.push_back({-1, time});
-                 }
-                time = next_arrival;
-            } else {
-                 time++; // Should not happen if next_arrival logic is correct, but safe fallback
-            }
-        } else {
-            // A job is selected
+            gantt_chart.push_back({-1, time});
+            time = next_arrival;
+        }
+        else {
+            // A process is selected
             int process = best_job_idx;
             int at = arrTime[process];
             int bt = burstTime[process];
             
-            gantt_chart.push_back({ process, time });
+            gantt_chart.push_back({process, time});
 
             resTime[process] = time - at;
             time += bt;
@@ -276,42 +259,40 @@ void shortestJobFirst() {
             completed_count++;
         }
     }
-    // --- END OF REPLACED LOGIC ---
-
-    gantt_chart.push_back({-99, time}); // Sentinel for end time
+    // for end time
+    gantt_chart.push_back({-99, time});
 
     // printing gantt chart
     cout << "\nGantt Chart :-" << endl;
-    int gantt_size = (int)gantt_chart.size() - 1;
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    int gantt_size = gantt_chart.size();
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
+    for(int i = 0; i < gantt_size-1; i++) {
         int pid = gantt_chart[i].first;
-        if (pid == -1) {
+        if(pid == -1) {
             cout << "| IDLE  ";
         }
         else {
-            cout << "|  P" << pid << "   ";
+            cout << "|  P" << pid+1 << "   ";
         }
     }
     cout << "|" << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
     
     if(!gantt_chart.empty()){
         cout << gantt_chart[0].second;
     }
-
-    for (int i = 0; i < gantt_size; i++) {
+    for(int i = 0; i < gantt_size-1; i++) {
         int completion = gantt_chart[i+1].second;
         // here we are giving less space for a double digit number to make a balance
-        if (completion > 9) {
+        if(completion > 9) {
             cout << "      " << completion;
         }
         else {
@@ -323,7 +304,7 @@ void shortestJobFirst() {
     // printing values in table form
     cout << "SJF (Non-Preemptive) Results:" << endl;
     cout << "Process\t\tArrival\t\tBurst\t\tCompletion\tTurnaround\tWaiting" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         cout << "P" << i << "\t\t";
         cout << arrTime[i] << "\t\t";
         cout << burstTime[i] << "\t\t";
@@ -339,25 +320,23 @@ void shortestJobFirst() {
     cout << "Avg. waiting time: " << avg_wt << endl;
 }
 
-void fcfs() {
+void firstComeFirstServe() {
     int n;
     vector<int> arrTime;
     vector<int> burstTime;
 
     cout << "Enter number of processes:";
     cin >> n;
-
-    // check for 0 processes
-    if (n <= 0) return;
+    if(n <= 0) return;
 
     cout << "Enter arrival time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         arrTime.push_back(time);
     }
     cout << "Enter burst time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         burstTime.push_back(time);
@@ -365,13 +344,12 @@ void fcfs() {
 
     // combining both arrival time and burst time in one array
     vector<vector<int>> detail;
-    for (int i = 0; i < n; i++) {
-        detail.push_back({ i, arrTime[i], burstTime[i] });
+    for(int i = 0; i < n; i++) {
+        detail.push_back({i, arrTime[i], burstTime[i]});
     }
     // sorting it by arrival time with tie-breaker -> process id
     sort(detail.begin(), detail.end(), sortByArrival);
 
-    // vector<int> gantt; // Old
     vector<pair<int, int>> gantt_chart; // {PID, StartTime}
     vector<int> ct(n);
     vector<int> tat(n);
@@ -381,19 +359,19 @@ void fcfs() {
     int total_wt = 0, total_tat = 0;
 
     // calculating all the values
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int process = detail[i][0];
         int at = detail[i][1];
         int bt = detail[i][2];
 
         // handling case for an gap between processes
-        if (time < at) {
-            gantt_chart.push_back({ -1, time }); // -1 indicates IDLE
+        if(time < at) {
+            gantt_chart.push_back({-1, time}); // -1 indicates cpu is free
             time = at;
         }
 
         // pushing to gantt chart
-        gantt_chart.push_back({ process, time });
+        gantt_chart.push_back({process, time});
 
         // calculating all values
         resTime[process] = time - at;
@@ -404,30 +382,29 @@ void fcfs() {
         total_tat += tat[process];
         total_wt += wt[process];
     }
-    
-    gantt_chart.push_back({-99, time}); // Sentinel for end time
+    // for end time
+    gantt_chart.push_back({-1, time});
 
     // printing gantt chart
     cout << "\nGantt Chart :-" << endl;
-    int gantt_size = (int)gantt_chart.size() - 1;
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    for(int i = 0; i < gantt_chart.size()-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
+    for(int i = 0; i < gantt_chart.size()-1; i++) {
         int pid = gantt_chart[i].first;
-        if (pid == -1) {
+        if(pid == -1) {
             cout << "| IDLE  ";
         }
         else {
-            cout << "|  P" << pid << "   ";
+            cout << "|  P" << pid+1 << "   ";
         }
     }
     cout << "|" << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    for(int i = 0; i < gantt_chart.size()-1; i++) {
+        cout << "--------";
     }
     cout << endl;
     
@@ -435,10 +412,10 @@ void fcfs() {
         cout << gantt_chart[0].second;
     }
 
-    for (int i = 0; i < gantt_size; i++) {
+    for(int i = 0; i < gantt_chart.size()-1; i++) {
         int completion = gantt_chart[i+1].second;
         // here we are giving less space for a double digit number to make a balance
-        if (completion > 9) {
+        if(completion > 9) {
             cout << "      " << completion;
         }
         else {
@@ -450,7 +427,7 @@ void fcfs() {
     // printing values in table form
     cout << "FCFS Results:" << endl;
     cout << "Process\t\tArrival\t\tBurst\t\tCompletion\tTurnaround\tWaiting" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         cout << "P" << i << "\t\t";
         cout << arrTime[i] << "\t\t";
         cout << burstTime[i] << "\t\t";
@@ -473,18 +450,16 @@ void shortestJobFirstPreemptive() {
 
     cout << "Enter number of processes:";
     cin >> n;
-
-    // check for 0 processes
-    if (n <= 0) return;
+    if(n <= 0) return;
 
     cout << "Enter arrival time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         arrTime.push_back(time);
     }
     cout << "Enter burst time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         burstTime.push_back(time);
@@ -501,44 +476,46 @@ void shortestJobFirstPreemptive() {
     int completed = 0;
     int total_wt = 0, total_tat = 0;
 
-    while (completed != n) {
+    while(completed < n) {
         int shortestJob = -1;
-        int minBurst = 1e9; // a big number
+        int minBurst = 1e9;
 
-        for (int i = 0; i < n; i++) {
-            if (arrTime[i] <= currentTime && remainingBT[i] > 0) {
-                if (remainingBT[i] < minBurst) {
+        for(int i = 0; i < n; i++) {
+            if(arrTime[i] <= currentTime && remainingBT[i] > 0) {
+                if(remainingBT[i] < minBurst) {
                     minBurst = remainingBT[i];
                     shortestJob = i;
                 }
-                else if (remainingBT[i] == minBurst) {
-                    if (arrTime[i] < arrTime[shortestJob]) {
+                else if(remainingBT[i] == minBurst) { // tie breaker -> FCFS
+                    if(arrTime[i] < arrTime[shortestJob]) {
                         shortestJob = i;
                     }
                 }
             }
         }
 
-        if (shortestJob == -1) {
-            if (gantt.empty() || gantt.back().first != -1) { // -1 for IDLE
-                gantt.push_back({ -1, currentTime });
+        if(shortestJob == -1) {
+            // do not repeat IDLE -> the gap is more than one
+            if(gantt.size() == 0 || gantt.back().first != -1) {
+                gantt.push_back({-1, currentTime});
             }
             currentTime++;
         }
         else {
-            if (resTime[shortestJob] == -1) {
+            // updating response time
+            if(resTime[shortestJob] == -1) {
                 resTime[shortestJob] = currentTime - arrTime[shortestJob];
             }
-
+            // decreasing burst time by 1
             remainingBT[shortestJob]--;
-
-            if (gantt.empty() || gantt.back().first != shortestJob) {
-                gantt.push_back({ shortestJob, currentTime });
+            // checking if the process is just before this if yes then don't add it again
+            if(gantt.empty() || gantt.back().first != shortestJob) {
+                gantt.push_back({shortestJob, currentTime});
             }
 
-            currentTime++;
-
-            if (remainingBT[shortestJob] == 0) {
+            currentTime++; // incrementing time only by 1
+            if(remainingBT[shortestJob] == 0) {
+                // process has been completed
                 completed++;
                 ct[shortestJob] = currentTime;
                 tat[shortestJob] = ct[shortestJob] - arrTime[shortestJob];
@@ -548,42 +525,43 @@ void shortestJobFirstPreemptive() {
             }
         }
     }
-
-    gantt.push_back({ -99, currentTime });
+    // for end time
+    gantt.push_back({-99, currentTime});
 
     // printing gantt chart
-    cout << "\nGantt Chart :-" << endl;
-    int gantt_size = (int)gantt.size() - 1;
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    cout << "\nGantt Chart:-" << endl;
+    int gantt_size = gantt.size();
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        if (gantt[i].first == -1) {
+    for(int i = 0; i < gantt_size-1; i++) {
+        if(gantt[i].first == -1) {
             cout << "| IDLE  ";
         }
         else {
-            cout << "|  P" << gantt[i].first << "   ";
+            cout << "|  P" << gantt[i].first+1 << "   ";
         }
     }
     cout << "|" << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    // handles case where chart is empty
-    if (!gantt.empty()) {
+    // if gantt chart is not empty then only print first here
+    if(!gantt.empty()) {
         cout << gantt[0].second;
     }
-
-    for (int i = 0; i < gantt_size; i++) {
-        int completion = gantt[i + 1].second;
-        if (completion > 9) {
+    for(int i = 0; i < gantt_size-1; i++) {
+        int completion = gantt[i+1].second;
+        // less space for 2 digit number than 1 digit number
+        if(completion > 9) {
             cout << "      " << completion;
-        } else {
+        }
+        else {
             cout << "       " << completion;
         }
     }
@@ -592,7 +570,7 @@ void shortestJobFirstPreemptive() {
     // printing values in table form
     cout << "SJF (Preemptive) Results:" << endl;
     cout << "Process\t\tArrival\t\tBurst\t\tCompletion\tTurnaround\tWaiting" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         cout << "P" << i << "\t\t";
         cout << arrTime[i] << "\t\t";
         cout << burstTime[i] << "\t\t";
@@ -616,24 +594,22 @@ void prioritySchedulingPreemptive() {
 
     cout << "Enter number of processes:";
     cin >> n;
-
-    // check for 0 processes
-    if (n <= 0) return;
+    if(n <= 0) return;
 
     cout << "Enter arrival time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         arrTime.push_back(time);
     }
     cout << "Enter burst time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         burstTime.push_back(time);
     }
     cout << "Enter priority of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int pr;
         cin >> pr;
         priority.push_back(pr);
@@ -650,44 +626,45 @@ void prioritySchedulingPreemptive() {
     int completed = 0;
     int total_wt = 0, total_tat = 0;
 
-    while (completed != n) {
+    while(completed < n) {
         int highestPriorityJob = -1;
         int maxPriority = -1;
 
-        for (int i = 0; i < n; i++) {
-            if (arrTime[i] <= currentTime && remainingBT[i] > 0) {
-                if (priority[i] > maxPriority) {
+        for(int i = 0; i < n; i++) {
+            if(arrTime[i] <= currentTime && remainingBT[i] > 0) {
+                if(priority[i] > maxPriority) {
                     maxPriority = priority[i];
                     highestPriorityJob = i;
                 }
-                else if (priority[i] == maxPriority) {
-                    if (arrTime[i] < arrTime[highestPriorityJob]) {
+                else if(priority[i] == maxPriority) { // tie-breaker -> FCFS
+                    if(arrTime[i] < arrTime[highestPriorityJob]) {
                         highestPriorityJob = i;
                     }
                 }
             }
         }
 
-        if (highestPriorityJob == -1) {
-            if (gantt.empty() || gantt.back().first != -1) { // -1 for IDLE
+        if(highestPriorityJob == -1) {
+            // avoiding continues inserting of IDLE
+            if(gantt.empty() || gantt.back().first != -1) {
                 gantt.push_back({ -1, currentTime });
             }
             currentTime++;
         }
         else {
-            if (resTime[highestPriorityJob] == -1) {
+            if(resTime[highestPriorityJob] == -1) {
                 resTime[highestPriorityJob] = currentTime - arrTime[highestPriorityJob];
             }
-
             remainingBT[highestPriorityJob]--;
 
-            if (gantt.empty() || gantt.back().first != highestPriorityJob) {
-                gantt.push_back({ highestPriorityJob, currentTime });
+            // avoiding continues insertion of a process in gantt chart
+            if(gantt.empty() || gantt.back().first != highestPriorityJob) {
+                gantt.push_back({highestPriorityJob, currentTime});
             }
-
             currentTime++;
 
-            if (remainingBT[highestPriorityJob] == 0) {
+            if(remainingBT[highestPriorityJob] == 0) {
+                // process is completed
                 completed++;
                 ct[highestPriorityJob] = currentTime;
                 tat[highestPriorityJob] = ct[highestPriorityJob] - arrTime[highestPriorityJob];
@@ -697,39 +674,39 @@ void prioritySchedulingPreemptive() {
             }
         }
     }
-
-    gantt.push_back({ -99, currentTime });
+    // for end time
+    gantt.push_back({-99, currentTime});
 
     // printing gantt chart
     cout << "\nGantt Chart :-" << endl;
-    int gantt_size = (int)gantt.size() - 1;
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    int gantt_size = gantt.size();
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        if (gantt[i].first == -1) {
+    for(int i = 0; i < gantt_size-1; i++) {
+        if(gantt[i].first == -1) {
             cout << "| IDLE  ";
         }
         else {
-            cout << "|  P" << gantt[i].first << "   ";
+            cout << "|  P" << gantt[i].first+1 << "   ";
         }
     }
     cout << "|" << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    if (!gantt.empty()) {
+    // printing the first process if gantt is not empty
+    if(!gantt.empty()) {
         cout << gantt[0].second;
     }
-
-    for (int i = 0; i < gantt_size; i++) {
-        int completion = gantt[i + 1].second;
-        if (completion > 9) {
+    for(int i = 0; i < gantt_size-1; i++) {
+        int completion = gantt[i+1].second;
+        if(completion > 9) {
             cout << "      " << completion;
         } else {
             cout << "       " << completion;
@@ -740,7 +717,7 @@ void prioritySchedulingPreemptive() {
     // printing values in table form
     cout << "Priority (Preemptive) Results:" << endl;
     cout << "Process\t\tArrival\t\tBurst\t\tPriority\tCompletion\tTurnaround\tWaiting" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         cout << "P" << i << "\t\t";
         cout << arrTime[i] << "\t\t";
         cout << burstTime[i] << "\t\t";
@@ -765,29 +742,28 @@ void roundRobin() {
 
     cout << "Enter number of processes:";
     cin >> n;
-
-    // check for 0 processes
-    if (n <= 0) return;
+    if(n <= 0) return;
 
     cout << "Enter arrival time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         arrTime.push_back(time);
     }
     cout << "Enter burst time of all processes:" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         int time;
         cin >> time;
         burstTime.push_back(time);
     }
-    cout << "Enter time quantum:";
+    cout << "Enter quantum time:";
     cin >> quantum;
 
     vector<vector<int>> processes;
-    for (int i = 0; i < n; i++) {
-        processes.push_back({ arrTime[i], burstTime[i], i });
+    for(int i = 0; i < n; i++) {
+        processes.push_back({arrTime[i], burstTime[i], i});
     }
+    // sorting according to arrival time
     sort(processes.begin(), processes.end());
 
     queue<int> readyQueue;
@@ -799,94 +775,98 @@ void roundRobin() {
 
     int currentTime = 0;
     int completed = 0;
-    int process_ptr = 0;
+    int pid = 0; // pointer to push all processes in ready queue one by one
     int total_wt = 0, total_tat = 0;
     vector<pair<int, int>> gantt;
 
-    while (completed < n) {
-        while (process_ptr < n && processes[process_ptr][0] <= currentTime) {
-            readyQueue.push(processes[process_ptr][2]);
-            process_ptr++;
+    while(completed < n) {
+        // adding all process with arrTime <= currTime
+        while(pid < n && processes[pid][0] <= currentTime) {
+            readyQueue.push(processes[pid][2]);
+            pid++;
         }
 
-        if (readyQueue.empty()) {
-            if (process_ptr < n) {
+        if(readyQueue.empty()) {
+            // no process is arrived at this time
+            if(pid < n) {
                 int idleStartTime = currentTime;
-                currentTime = processes[process_ptr][0]; // Move time forward to next process arrival
-                if (gantt.empty() || gantt.back().first != -1) {
-                    gantt.push_back({ -1, idleStartTime }); // Push IDLE block with its start time
+                currentTime = processes[pid][0]; // move time to next process arrival
+                // avoiding repeatation of IDLE time
+                if(gantt.empty() || gantt.back().first != -1) {
+                    gantt.push_back({-1, idleStartTime}); // push IDLE block with its start time
                 }
             }
             else {
-                // all processes are done
+                // if all processes are processed
                 break;
             }
-            continue; // Continue to next loop iteration to re-check queue
+            continue; // continue to next loop to re-check ready queue
         }
 
-        int pid = readyQueue.front();
+        // taking the front process
+        int curr_pid = readyQueue.front();
         readyQueue.pop();
 
-        if (gantt.empty() || gantt.back().first != pid) {
-            gantt.push_back({ pid, currentTime });
+        // avoiding continuous repeatation of same process
+        if(gantt.empty() || gantt.back().first != curr_pid) {
+            gantt.push_back({curr_pid, currentTime});
+        }
+        // updating response time
+        if(resTime[curr_pid] == -1) {
+            resTime[curr_pid] = currentTime - arrTime[curr_pid];
         }
 
-        if (resTime[pid] == -1) {
-            resTime[pid] = currentTime - arrTime[pid];
+        // substracting quantum for the burst time
+        int subtract_BT = min(quantum, remainingBT[curr_pid]);
+        currentTime += subtract_BT;
+        remainingBT[curr_pid] -= subtract_BT;
+
+        // pushing all the processes that are arrived now
+        while(pid < n && processes[pid][0] <= currentTime) {
+            readyQueue.push(processes[pid][2]);
+            pid++;
         }
 
-        int exec_time = min(quantum, remainingBT[pid]);
-        currentTime += exec_time;
-        remainingBT[pid] -= exec_time;
-
-        // Add processes that arrived *during* execution
-        while (process_ptr < n && processes[process_ptr][0] <= currentTime) {
-            readyQueue.push(processes[process_ptr][2]);
-            process_ptr++;
-        }
-
-        if (remainingBT[pid] > 0) {
-            readyQueue.push(pid); // Add back to queue if not finished
+        if(remainingBT[curr_pid] > 0) {
+            readyQueue.push(curr_pid); // adding back to queue if the process is not finished
         }
         else {
             completed++;
-            ct[pid] = currentTime;
-            tat[pid] = ct[pid] - arrTime[pid];
-            wt[pid] = tat[pid] - burstTime[pid];
-            total_tat += tat[pid];
-            total_wt += wt[pid];
+            ct[curr_pid] = currentTime;
+            tat[curr_pid] = ct[curr_pid] - arrTime[curr_pid];
+            wt[curr_pid] = tat[curr_pid] - burstTime[curr_pid];
+            total_tat += tat[curr_pid];
+            total_wt += wt[curr_pid];
         }
     }
-
-    // add the end time for printing
-    gantt.push_back({ -99, currentTime }); 
+    // for printing end time
+    gantt.push_back({-99, currentTime});
 
     // printing gantt chart
     cout << "\nGantt Chart :-" << endl;
-    int gantt_size = (int)gantt.size() - 1;
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    int gantt_size = gantt.size();
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        if (gantt[i].first == -1) cout << "| IDLE  ";
-        else cout << "|  P" << gantt[i].first << "   ";
+    for(int i = 0; i < gantt_size-1; i++) {
+        if(gantt[i].first == -1) cout << "| IDLE  ";
+        else cout << "|  P" << gantt[i].first+1 << "   ";
     }
     cout << "|" << endl;
 
-    for (int i = 0; i < gantt_size; i++) {
-        cout << "-------";
+    for(int i = 0; i < gantt_size-1; i++) {
+        cout << "--------";
     }
     cout << endl;
 
-    if (!gantt.empty()) {
+    if(!gantt.empty()) {
         cout << gantt[0].second;
     }
-
-    for (int i = 0; i < gantt_size; i++) {
-        int completion = gantt[i + 1].second;
-        if (completion > 9) {
+    for(int i = 0; i < gantt_size-1; i++) {
+        int completion = gantt[i+1].second;
+        if(completion > 9) {
             cout << "      " << completion;
         } else {
             cout << "       " << completion;
@@ -897,7 +877,7 @@ void roundRobin() {
     // printing values in table form
     cout << "Round Robin Results:" << endl;
     cout << "Process\t\tArrival\t\tBurst\t\tCompletion\tTurnaround\tWaiting" << endl;
-    for (int i = 0; i < n; i++) {
+    for(int i = 0; i < n; i++) {
         cout << "P" << i << "\t\t";
         cout << arrTime[i] << "\t\t";
         cout << burstTime[i] << "\t\t";
@@ -925,7 +905,7 @@ int main() {
     cin >> choice;
     switch (choice) {
     case 1:
-        fcfs();
+        firstComeFirstServe();
         break;
     case 2:
         shortestJobFirst();
@@ -946,4 +926,3 @@ int main() {
 
     return 0;
 }
-
