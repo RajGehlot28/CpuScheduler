@@ -135,6 +135,19 @@ class Scheduler {
             }
             cout << endl << endl;
         }
+
+        bool isInputValid() {
+            // checking whether user entered valid input or not
+            // priority can be -ve also so no need to check for it
+            if(n < 0) return false;
+            if(this->isRoundRobin) {
+                if(quantum < 0) return false;
+            }
+            for(int i = 0; i < n; i++) {
+                if(arrTime[i] < 0 || burstTime[i] < 0) return false;
+            }
+            return true;
+        }
 };
 
 
@@ -630,6 +643,10 @@ class RoundRobin : public Scheduler {
 void shortestJobFirst() {
     SJF process(false, false);
     process.takeInput();
+    if(!process.isInputValid()) {
+        cout << "Wrong Input!";
+        return;
+    }
     process.calculate();
     process.printGanttChart();
     process.printMatrices();
@@ -638,6 +655,10 @@ void shortestJobFirst() {
 void shortestJobFirstPreemptive() {
     SJFPreemptive process(false, false);
     process.takeInput();
+    if(!process.isInputValid()) {
+        cout << "Wrong Input!";
+        return;
+    }
     process.calculate();
     process.printGanttChart();
     process.printMatrices();
@@ -646,6 +667,10 @@ void shortestJobFirstPreemptive() {
 void firstComeFirstServe() {
     FCFS process(false, false);
     process.takeInput();
+    if(!process.isInputValid()) {
+        cout << "Wrong Input!";
+        return;
+    }
     process.calculate();
     process.printGanttChart();
     process.printMatrices();
@@ -654,6 +679,10 @@ void firstComeFirstServe() {
 void priorityScheduling() {
     Priority process(true, false);
     process.takeInput();
+    if(!process.isInputValid()) {
+        cout << "Wrong Input!";
+        return;
+    }
     process.calculate();
     process.printGanttChart();
     process.printMatrices();
@@ -662,6 +691,10 @@ void priorityScheduling() {
 void prioritySchedulingPreemptive() {
     PriorityPreemptive process(true, false);
     process.takeInput();
+    if(!process.isInputValid()) {
+        cout << "Wrong Input!";
+        return;
+    }
     process.calculate();
     process.printGanttChart();
     process.printMatrices();
@@ -670,6 +703,10 @@ void prioritySchedulingPreemptive() {
 void roundRobin() {
     RoundRobin process(false, true);
     process.takeInput();
+    if(!process.isInputValid()) {
+        cout << "Wrong Input!";
+        return;
+    }
     process.calculate();
     process.printGanttChart();
     process.printMatrices();
