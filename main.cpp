@@ -4,23 +4,11 @@
 #include <queue>
 using namespace std;
 
-// functions for sorting
+// function for sorting
 bool sortByArrival(const vector<int>& a, const vector<int>& b) {
     // tie-breaker :- process id
     if(a[1] == b[1]) return a[0] < b[0];
     return a[1] < b[1];
-}
-
-bool sortByBurstTime(const vector<int>& a, const vector<int>& b) {
-    // tie-breaker :- FCFS
-    if(a[2] == b[2]) return sortByArrival(a, b);
-    else return a[2] < b[2];
-}
-
-bool sortByPriority(const vector<int>& a, const vector<int>& b) {
-    // tie-breaker :- FCFS (higher number = higher priority)
-    if(a[3] == b[3]) return sortByArrival(a, b);
-    else return a[3] > b[3];
 }
 
 // This is parent class or common class in all classes. It takes inputs, printing gantt chart and matrices for each process
@@ -748,3 +736,4 @@ int main() {
 
     return 0;
 }
+
