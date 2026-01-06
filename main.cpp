@@ -77,12 +77,13 @@ class Scheduler {
         }
 
         void printMatrices() {
-            cout << "Process\t\tArrival\t\tBurst\t\tPriority\tCompletion\tTurnaround\tWaiting" << endl;
+            if (this->isPriority) cout << "Process\t\tArrival\t\tBurst\t\tPriority\tCompletion\tTurnaround\tWaiting\n";
+            else cout << "Process\t\tArrival\t\tBurst\t\tCompletion\tTurnaround\tWaiting\n";
             for(int i = 0; i < n; i++) {
                 cout << "P" << i << "\t\t";
                 cout << this->arrTime[i] << "\t\t";
                 cout << this->burstTime[i] << "\t\t";
-                cout << this->priority[i] << "\t\t";
+                if(this->isPriority) cout << this->priority[i] << "\t\t";
                 cout << ct[i] << "\t\t";
                 cout << tat[i] << "\t\t";
                 cout << wt[i] << endl;
@@ -139,9 +140,9 @@ class Scheduler {
         bool isInputValid() {
             // checking whether user entered valid input or not
             // priority can be -ve also so no need to check for it
-            if(n < 0) return false;
+            if(n <= 0) return false;
             if(this->isRoundRobin) {
-                if(quantum < 0) return false;
+                if(quantum <= 0) return false;
             }
             for(int i = 0; i < n; i++) {
                 if(arrTime[i] < 0 || burstTime[i] < 0) return false;
@@ -155,7 +156,7 @@ class Scheduler {
 class ComparePriority {
     public:
     bool operator() (vector<int> &a, vector<int>& b) {
-        if(a[1] == b[1]) { // same priority/burst-time then sort by arrival time
+        if(a[1] == b[1]) { // same priority then sort by arrival time
             return a[2] > b[2];
         } else {
             return a[1] < b[1];
@@ -206,6 +207,7 @@ class Priority : public Scheduler {
 
                     gantt_chart.push_back({process, time});
 
+                    if(resTime[process] == -1)
                     resTime[process] = time - at;
                     time += bt;
                     ct[process] = time;
@@ -570,12 +572,10 @@ class RoundRobin : public Scheduler {
             sort(processes.begin(), processes.end());
 
             int currentTime = 0;
-            int completed = 0;
+            int completed_count = 0;
             int pid = 0; // pointer to push all processes in ready queue one by one
-            int total_wt = 0, total_tat = 0;
-            vector<pair<int, int>> gantt;
 
-            while(completed < n) {
+            while(completed_count < n) {
                 // adding all process with arrTime <= currTime
                 while(pid < n && processes[pid][0] <= currentTime) {
                     readyQueue.push(processes[pid][2]);
@@ -588,8 +588,8 @@ class RoundRobin : public Scheduler {
                         int idleStartTime = currentTime;
                         currentTime = processes[pid][0]; // move time to next process arrival
                         // avoiding repeatation of IDLE time
-                        if(gantt.empty() || gantt.back().first != -1) {
-                            gantt.push_back({-1, idleStartTime}); // push IDLE block with its start time
+                        if(gantt_chart.empty() || gantt_chart.back().first != -1) {
+                            gantt_chart.push_back({-1, idleStartTime}); // push IDLE block with its start time
                         }
                     }
                     else {
@@ -604,8 +604,8 @@ class RoundRobin : public Scheduler {
                 readyQueue.pop();
 
                 // avoiding continuous repeatation of same process
-                if(gantt.empty() || gantt.back().first != curr_pid) {
-                    gantt.push_back({curr_pid, currentTime});
+                if(gantt_chart.empty() || gantt_chart.back().first != curr_pid) {
+                    gantt_chart.push_back({curr_pid, currentTime});
                 }
                 // updating response time
                 if(resTime[curr_pid] == -1) {
@@ -627,7 +627,7 @@ class RoundRobin : public Scheduler {
                     readyQueue.push(curr_pid); // adding back to queue if the process is not finished
                 }
                 else {
-                    completed++;
+                    completed_count++;
                     ct[curr_pid] = currentTime;
                     tat[curr_pid] = ct[curr_pid] - arrTime[curr_pid];
                     wt[curr_pid] = tat[curr_pid] - burstTime[curr_pid];
@@ -636,7 +636,7 @@ class RoundRobin : public Scheduler {
                 }
             }
             // for printing end time
-            gantt.push_back({-99, currentTime});
+            gantt_chart.push_back({-99, currentTime});
         }
 };
 
