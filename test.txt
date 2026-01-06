@@ -6,7 +6,6 @@ Priority: N, Arrivals, Bursts, Priorities (higher number = higher priority)
 RR: N, Arrivals, Bursts, Quantum
 
 FCFS Tests :-
-
 Test 1: Basic run, sequential arrival
 Input:
 4
@@ -21,7 +20,7 @@ Input:
 5 3 4 2
 Expected: Avg TAT ~ 8.75, Avg WT ~ 5.25
 
-Test 3: Test with idle CPU time
+Test 3: Test with free CPU time
 Input:
 4
 0 5 6 12
@@ -29,7 +28,6 @@ Input:
 Expected: Avg TAT ~ 5.75, Avg WT ~ 2.0
 
 SJF (Non-Preemptive) Test :-
-
 Test 1: Shorter job arrives later
 Input:
 4
@@ -38,8 +36,7 @@ Input:
 Expected: Avg TAT ~ 9.0, Avg WT ~ 4.5
 
 SJF (Preemptive) Test :-
-
-Test 1: Testing preemption (P1 should interrupt P0)
+Test 1: Testing preemption
 Input:
 4
 0 1 2 3
@@ -47,39 +44,36 @@ Input:
 Expected: Avg TAT ~ 13.0, Avg WT ~ 6.5
 
 Priority (Non-Preemptive) Test :-
-
 Test 1: Higher priority runs first, FCFS tie-break
 Input:
 4
 0 1 2 3
 10 1 2 1
 3 4 5 2
-Expected: Avg TAT ~ 9.25, Avg WT ~ 5.75
+Expected: Avg TAT ~ 10.75, Avg WT ~ 7.25
 
 Priority (Preemptive) Test :-
-
-Test 1: Testing priority preemption (P2 interrupts P0, P3 interrupts P2)
+Test 1: Testing priority preemption
 Input:
 4
 0 1 2 4
-5 4 2 1
 2 1 3 4
-Expected: Avg TAT ~ 5.5, Avg WT ~ 2.5
+5 4 2 3
+Expected: Avg TAT ~ 4, Avg WT ~ 1.5
 
 Round Robin Test :-
-
 Test 1: Basic RR, quantum = 4
 Input:
 4
+4
 0 1 2 3
 10 5 8 4
-4
-Expected: Avg TAT ~ 20.25, Avg WT ~ 13.5
+Expected: Avg TAT ~ 20.75, Avg WT ~ 14
 
 Test 2: Smaller quantum = 2, more switches
 Input:
 5
+2
 0 1 2 3 4
 5 3 1 2 3
-2
 Expected: Avg TAT ~ 8.6, Avg WT ~ 5.8
