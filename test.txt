@@ -2,7 +2,7 @@ CPU Scheduling Simulator Test Cases
 
 Input format reminders:
 FCFS/SJF: N, Arrivals, Bursts
-Priority: N, Arrivals, Bursts, Priorities (higher number = higher priority)
+Priority: N, Arrivals, Bursts, Priorities
 RR: N, Arrivals, Bursts, Quantum
 
 FCFS Tests :-
@@ -77,3 +77,4 @@ Input:
 0 1 2 3 4
 5 3 1 2 3
 Expected: Avg TAT ~ 8.6, Avg WT ~ 5.8
+
